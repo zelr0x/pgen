@@ -2,7 +2,7 @@
 Simple secure random password generator
 
 ## Alphabet
-Generates printable Latin1 characters except special characters. The only punctuation characters in the alphabet are underscore and minus.
+Generates printable Latin1 characters except the special characters: only punctuation characters in the alphabet are underscore and minus.
 
 ## Usage
 ```sh
