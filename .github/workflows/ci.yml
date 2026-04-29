@@ -31,51 +31,6 @@ jobs:
     steps:
       - run: exit 0
 
-  rustfmt:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Harden runner (audit outbound)
-      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
-      with:
-        egress-policy: audit
-
-    - name: Checkout repository
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # 1.94.1
-      with:
-        toolchain: stable
-        components: rustfmt
-
-    - name: Check formatting
-      run: cargo fmt --all --check
-
-  clippy:
-    name: clippy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden runner (audit outbound)
-        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Install Rust ${{ env.rust_clippy }}
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # 1.94.1
-        with:
-          toolchain: ${{ env.rust_clippy }}
-          components: clippy
-
-      # Run clippy
-      - name: "clippy --workspace"
-        run: |
-          cargo clippy --workspace --all-targets --all-features
-        env:
-          RUSTFLAGS: -Dwarnings
-
-
   test:
     env:
       # For some builds, we use cross to test on 32-bit and big-endian
@@ -172,3 +127,49 @@ jobs:
     - name: Run tests with cross
       if: matrix.target != ''
       run: ${{ env.CARGO }} test --verbose --workspace ${{ env.TARGET_FLAGS }}
+
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden runner (audit outbound)
+      uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
+      with:
+        egress-policy: audit
+
+    - name: Checkout repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # 1.94.1
+      with:
+        toolchain: stable
+        components: rustfmt
+
+    - name: Check formatting
+      run: cargo fmt --all --check
+
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner (audit outbound)
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Rust ${{ env.rust_clippy }}
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # 1.94.1
+        with:
+          toolchain: ${{ env.rust_clippy }}
+          components: clippy
+
+      # Run clippy
+      - name: "clippy --workspace"
+        run: |
+          cargo clippy --workspace --all-targets --all-features
+        env:
+          RUSTFLAGS: -Dwarnings
