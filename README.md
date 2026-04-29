@@ -1,4 +1,6 @@
 # pgen
+![Tests](https://github.com/zelr0x/pgen/actions/workflows/ci.yml/badge.svg)
+
 Simple secure random password generator
 
 ## Alphabet
