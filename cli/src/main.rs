@@ -1,10 +1,10 @@
 use clap::Parser;
 use pgen::{self, ExposeSecret};
 
-const MIN_RAW: i32 = 8;
-const MAX_RAW: i32 = 4096;
-const MIN: u16 = MIN_RAW as u16;
-const MAX: u16 = MAX_RAW as u16;
+const MIN_RAW: i64 = 8;
+const MAX_RAW: i64 = 4096;
+const MIN: usize = MIN_RAW as usize;
+const MAX: usize = MAX_RAW as usize;
 
 /// Simple ASCII password generator.
 ///
@@ -16,13 +16,13 @@ const MAX: u16 = MAX_RAW as u16;
 #[command(name = "pgen", author, version, about, long_about)]
 struct Args {
     #[arg(default_value_t = 16, value_parser=parse_number)]
-    length: u16,
+    length: usize,
 }
 
-fn parse_number(s: &str) -> Result<u16, String> {
-    match s.parse::<i32>() {
+fn parse_number(s: &str) -> Result<usize, String> {
+    match s.parse::<i64>() {
         Ok(n) if n < MIN_RAW => Err(format!("Length must be at least {} characters", MIN)),
-        Ok(n) if n <= MAX_RAW => Ok(n as u16),
+        Ok(n) if n <= MAX_RAW => Ok(n as usize),
         Ok(_) => Err(format!("Length must be below {} characters", MAX)),
         Err(_) => Err("Invalid number format".to_string()),
     }

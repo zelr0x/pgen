@@ -60,12 +60,12 @@ impl<'a, R: Rng> PassGen<'a, R> {
         }
     }
 
-    pub fn generate(&mut self, n: u16) -> SecretSlice<u8> {
+    pub fn generate(&mut self, n: usize) -> SecretSlice<u8> {
         let a = self.alphabet;
         let s = Uniform::new(0, a.len())
             .unwrap()
             .sample_iter(&mut self.rng)
-            .take(n as usize)
+            .take(n)
             .map(|i| a.get(i))
             .collect::<Vec<u8>>();
         SecretSlice::new(s.into())
@@ -105,7 +105,7 @@ impl<'a, R: Rng + CryptoRng> DerefMut for CryptoPassGen<'a, R> {
     }
 }
 
-pub fn generate(n: u16) -> SecretSlice<u8> {
+pub fn generate(n: usize) -> SecretSlice<u8> {
     let mut g = PassGen::default();
     g.generate(n)
 }
@@ -141,7 +141,7 @@ mod tests {
         let k = 16;
         let mut g = PassGen::default();
         let p = g.generate(k);
-        assert_eq!(p.expose_secret().len(), k as usize);
+        assert_eq!(p.expose_secret().len(), k);
         for &c in p.expose_secret() {
             assert!(ALPHABET.contains(&c), "Invalid char: {}", c);
         }
@@ -151,7 +151,7 @@ mod tests {
     fn func_generate_works() {
         let k = 16;
         let p: secrecy::SecretBox<[u8]> = generate(k);
-        assert_eq!(p.expose_secret().len(), k as usize);
+        assert_eq!(p.expose_secret().len(), k);
         for &c in p.expose_secret() {
             assert!(ALPHABET.contains(&c), "Invalid char: {}", c);
         }
@@ -183,7 +183,7 @@ mod tests {
         let a = Alphabet::from("xyz");
         let mut g = PassGen::with_alphabet(a);
         let p = g.generate(k);
-        assert_eq!(p.expose_secret().len(), k as usize);
+        assert_eq!(p.expose_secret().len(), k);
     }
 
     #[test]
@@ -191,7 +191,7 @@ mod tests {
         let k = 4096;
         let mut g = PassGen::default();
         let r = g.generate(k);
-        assert_eq!(r.expose_secret().len(), k as usize)
+        assert_eq!(r.expose_secret().len(), k)
     }
 
     #[test]
@@ -210,7 +210,7 @@ mod tests {
             }
         }
 
-        let total_chars = samples * p_len as usize;
+        let total_chars = samples * p_len;
         let expected_freq = total_chars as f64 / alphabet.len() as f64;
 
         for (&c, &count) in &counts {
@@ -231,10 +231,10 @@ mod tests {
         let g = PassGen::default();
         let mut g: CryptoPassGen<_> = g.into();
         let p = g.generate(k);
-        assert_eq!(p.expose_secret().len(), k as usize);
+        assert_eq!(p.expose_secret().len(), k);
         for &c in p.expose_secret() {
             assert!(ALPHABET.contains(&c), "Invalid char: {}", c);
         }
-        assert_eq!(p.expose_secret().len(), k as usize);
+        assert_eq!(p.expose_secret().len(), k);
     }
 }
