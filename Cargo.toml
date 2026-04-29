@@ -1,15 +1,9 @@
-[package]
-name = "pgen"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = ["lib", "cli"]
+resolver = "3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[profile.release]
-strip = true     # Strip symbols.
-opt-level = "z"  # Optimize for size.
-
-[dependencies]
-clap = { version = "4.3.4", features = ["derive"] }
-rand = "0.8.5"
-
+[workspace.dependencies]
+rand = { version = "0.10.1", features = ["thread_rng"] }
+secrecy = { version = "0.10.3" }
