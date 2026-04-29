@@ -33,7 +33,30 @@ fn main() {
     let n = args.length;
     assert!((MIN..=MAX).contains(&n));
     let p = pgen::generate(n);
-    for b in p.expose_secret() {
-        print!("{}", *b as char);
+    for &b in p.expose_secret() {
+        print!("{}", b as char);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn arg_parse_works() {
+        let args = Args::parse_from(["pgen", "32"]);
+        assert_eq!(args.length, 32);
+    }
+
+    #[test]
+    fn arg_parse_rejects_small_n() {
+        let r = Args::try_parse_from(["pgen", &format!("{}", MIN_RAW - 1)]);
+        assert!(r.is_err());
+    }
+
+    #[test]
+    fn arg_parse_rejects_large_n() {
+        let r = Args::try_parse_from(["pgen", &format!("{}", MAX_RAW + 1)]);
+        assert!(r.is_err());
     }
 }
