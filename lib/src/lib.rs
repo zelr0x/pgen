@@ -1,6 +1,4 @@
-use std::ops::{Deref, DerefMut};
-
-use rand::{self, CryptoRng, Rng, rngs::ThreadRng};
+use rand::{self, CryptoRng, rngs::ThreadRng};
 use rand_distr::{Distribution, uniform::Uniform};
 use secrecy::SecretSlice;
 
@@ -38,7 +36,7 @@ impl<'a> From<&'a str> for Alphabet<'a> {
     }
 }
 
-pub struct PassGen<'a, R: Rng> {
+pub struct PassGen<'a, R: CryptoRng> {
     rng: R,
     alphabet: Alphabet<'a>,
 }
@@ -52,7 +50,7 @@ impl Default for PassGen<'static, rand::rngs::ThreadRng> {
     }
 }
 
-impl<'a, R: Rng> PassGen<'a, R> {
+impl<'a, R: CryptoRng> PassGen<'a, R> {
     pub fn new(rng: R, alphabet: impl Into<Alphabet<'a>>) -> Self {
         Self {
             rng,
@@ -78,30 +76,9 @@ impl<'a> PassGen<'a, ThreadRng> {
     }
 }
 
-impl<R: Rng> PassGen<'static, R> {
+impl<R: CryptoRng> PassGen<'static, R> {
     pub fn with_rng(rng: R) -> PassGen<'static, R> {
         PassGen::new(rng, ALPHABET)
-    }
-}
-
-pub struct CryptoPassGen<'a, R: CryptoRng>(PassGen<'a, R>);
-
-impl<'a, R: CryptoRng> From<PassGen<'a, R>> for CryptoPassGen<'a, R> {
-    fn from(rng: PassGen<'a, R>) -> Self {
-        CryptoPassGen(rng)
-    }
-}
-
-impl<'a, R: Rng + CryptoRng> Deref for CryptoPassGen<'a, R> {
-    type Target = PassGen<'a, R>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<'a, R: Rng + CryptoRng> DerefMut for CryptoPassGen<'a, R> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 
@@ -114,7 +91,7 @@ pub fn generate(n: usize) -> SecretSlice<u8> {
 mod tests {
     use super::*;
     use core::convert::Infallible;
-    use rand::{Rng, TryRng};
+    use rand::{Rng, TryCryptoRng, TryRng};
     use std::collections::HashMap;
 
     pub struct Always42Rng;
@@ -135,6 +112,8 @@ mod tests {
             Ok(())
         }
     }
+
+    impl TryCryptoRng for Always42Rng {}
 
     #[test]
     fn default_works() {
@@ -228,8 +207,7 @@ mod tests {
     #[test]
     fn crypto_passgen_works() {
         let k = 16;
-        let g = PassGen::default();
-        let mut g: CryptoPassGen<_> = g.into();
+        let mut g = PassGen::default();
         let p = g.generate(k);
         assert_eq!(p.expose_secret().len(), k);
         for &c in p.expose_secret() {
