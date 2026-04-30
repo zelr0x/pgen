@@ -1,5 +1,4 @@
-use rand::{self, CryptoRng, rngs::ThreadRng};
-use rand_distr::{Distribution, uniform::Uniform};
+use rand::{self, RngExt, CryptoRng, rngs::ThreadRng};
 use secrecy::SecretSlice;
 
 pub use secrecy::ExposeSecret;
@@ -60,12 +59,11 @@ impl<'a, R: CryptoRng> PassGen<'a, R> {
 
     pub fn generate(&mut self, n: usize) -> SecretSlice<u8> {
         let a = self.alphabet;
-        let s = Uniform::new(0, a.len())
-            .unwrap()
-            .sample_iter(&mut self.rng)
-            .take(n)
-            .map(|i| a.get(i))
-            .collect::<Vec<u8>>();
+        let mut s = Vec::with_capacity(n);
+        for _ in 0..n {
+            let i = self.rng.random_range(0..a.len());
+            s.push(a.get(i));
+        }
         SecretSlice::new(s.into())
     }
 }
