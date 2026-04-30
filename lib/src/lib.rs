@@ -1,4 +1,4 @@
-use rand::{self, RngExt, CryptoRng, rngs::ThreadRng};
+use rand::{self, CryptoRng, RngExt, rngs::ThreadRng};
 use secrecy::SecretSlice;
 
 pub use secrecy::ExposeSecret;
@@ -14,24 +14,38 @@ impl<'a> Alphabet<'a> {
         self.0.len()
     }
 
+    #[inline]
     pub fn get(&self, i: usize) -> u8 {
-        self.0[i]
+        unsafe { *self.0.get_unchecked(i) }
     }
 
     pub fn as_slice(&self) -> &'a [u8] {
         self.0
     }
-}
 
-impl<'a> From<&'a [u8]> for Alphabet<'a> {
-    fn from(slice: &'a [u8]) -> Self {
+    pub fn new_unchecked(slice: &'a [u8]) -> Self {
+        debug_assert!(!slice.is_empty());
         Alphabet(slice)
     }
 }
 
-impl<'a> From<&'a str> for Alphabet<'a> {
-    fn from(s: &'a str) -> Self {
-        Alphabet(s.as_bytes())
+impl<'a> TryFrom<&'a [u8]> for Alphabet<'a> {
+    type Error = ();
+
+    fn try_from(slice: &'a [u8]) -> Result<Self, Self::Error> {
+        if slice.is_empty() {
+            Err(())
+        } else {
+            Ok(Alphabet(slice))
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a str> for Alphabet<'a> {
+    type Error = ();
+
+    fn try_from(s: &'a str) -> Result<Self, Self::Error> {
+        s.as_bytes().try_into()
     }
 }
 
@@ -44,17 +58,27 @@ impl Default for PassGen<'static, rand::rngs::ThreadRng> {
     fn default() -> Self {
         Self {
             rng: rand::rng(),
-            alphabet: ALPHABET.into(),
+            alphabet: Alphabet::new_unchecked(ALPHABET),
         }
     }
 }
 
 impl<'a, R: CryptoRng> PassGen<'a, R> {
-    pub fn new(rng: R, alphabet: impl Into<Alphabet<'a>>) -> Self {
+    pub fn new<A>(rng: R, alphabet: A) -> Self
+    where
+        A: Into<Alphabet<'a>>,
+    {
         Self {
             rng,
             alphabet: alphabet.into(),
         }
+    }
+
+    pub fn try_new<A>(rng: R, alphabet: A) -> Result<Self, A::Error>
+    where
+        A: TryInto<Alphabet<'a>>,
+    {
+        alphabet.try_into().map(|alphabet| Self { rng, alphabet })
     }
 
     pub fn generate(&mut self, n: usize) -> SecretSlice<u8> {
@@ -69,14 +93,17 @@ impl<'a, R: CryptoRng> PassGen<'a, R> {
 }
 
 impl<'a> PassGen<'a, ThreadRng> {
-    pub fn with_alphabet(alphabet: impl Into<Alphabet<'a>>) -> Self {
-        PassGen::new(rand::rng(), alphabet)
+    pub fn with_alphabet<A>(alphabet: A) -> Result<Self, A::Error>
+    where
+        A: TryInto<Alphabet<'a>>,
+    {
+        PassGen::try_new(rand::rng(), alphabet)
     }
 }
 
 impl<R: CryptoRng> PassGen<'static, R> {
     pub fn with_rng(rng: R) -> PassGen<'static, R> {
-        PassGen::new(rng, ALPHABET)
+        PassGen::new(rng, Alphabet::new_unchecked(ALPHABET))
     }
 }
 
@@ -146,8 +173,8 @@ mod tests {
 
     #[test]
     fn generator_with_alphabet_works() {
-        let alphabet = Alphabet::from("abc");
-        let mut g = PassGen::with_alphabet(alphabet);
+        let alphabet = Alphabet::try_from("abc").unwrap();
+        let mut g = PassGen::with_alphabet(alphabet).unwrap();
         let p = g.generate(8);
         for &c in p.expose_secret() {
             assert!(alphabet.as_slice().contains(&c));
@@ -157,8 +184,7 @@ mod tests {
     #[test]
     fn generator_respects_length() {
         let k = 16;
-        let a = Alphabet::from("xyz");
-        let mut g = PassGen::with_alphabet(a);
+        let mut g = PassGen::with_alphabet("xyz").unwrap();
         let p = g.generate(k);
         assert_eq!(p.expose_secret().len(), k);
     }
@@ -173,7 +199,7 @@ mod tests {
 
     #[test]
     fn distribution_is_roughly_uniform() {
-        let alphabet = Alphabet::from("abcdef1234567890");
+        let alphabet = Alphabet::try_from("abcdef1234567890").unwrap();
         let mut g = PassGen::new(rand::rng(), alphabet);
 
         let mut counts: HashMap<u8, usize> = HashMap::new();
