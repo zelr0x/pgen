@@ -1,0 +1,3 @@
+[alias]
+f = "fmt --all"
+c = "clippy --workspace --all-targets --all-features -- -D warnings"
