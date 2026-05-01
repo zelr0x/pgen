@@ -28,11 +28,11 @@ jobs:
       - name: Show the version
         run: |
           echo "version is: $VERSION"
-      - name: Check that tag version and Cargo.toml version are the same
+      - name: Check that tag version and cli/Cargo.toml version are the same
         shell: bash
         run: |
-          if ! grep -q "version = \"$VERSION\"" Cargo.toml; then
-            echo "version does not match Cargo.toml" >&2
+          if ! grep -q "version = \"$VERSION\"" cli/Cargo.toml; then
+            echo "version does not match cli/Cargo.toml" >&2
             exit 1
           fi
       - name: Create GitHub release
