@@ -20,54 +20,50 @@ const MAX: usize = MAX_RAW as usize;
 #[derive(Parser, Debug, ZeroizeOnDrop)]
 #[command(name = "pgen", author, version, about, long_about)]
 struct Args {
-    /// Length of the password
+    /// The length of the password
     #[arg(default_value_t = 16, value_parser=parse_number)]
     length: usize,
 
-    /// If true, generated password will have at least one lowercase letter
+    /// Require the password to have at least one lowercase letter
     #[arg(short = 'l', long = "lower", default_value_t = false)]
     lower: bool,
 
-    /// If true, generated password will have at least one uppercase letter
+    /// Require the password to have at least one uppercase letter
     #[arg(short = 'u', long = "upper", default_value_t = false)]
     upper: bool,
 
-    /// If true, generated password will have at least one lower case letter
-    /// as well as at least one upper case letter. Same as -lu
+    /// Require the password to have at least one lowercase and
+    /// one uppercase letter (same as -lu)
     #[arg(short = 'c', long = "case-mix", default_value_t = false)]
     case_mix: bool,
 
-    /// If true, generated password will have at least one digit
+    /// Require the password to have at least one digit
     #[arg(short = 'd', long = "digit", default_value_t = false)]
     digit: bool,
 
-    /// If true, generated password will have at least one special character
+    /// Require the password to have at least one special character
     #[arg(short = 's', long = "special", default_value_t = false)]
     special: bool,
 
-    /// If true, generated password will have at least one special character
-    /// from the full ASCII special character set.
+    /// Require the password to have at least one special character
+    /// from the full ASCII special character set
     #[arg(long = "special-full", default_value_t = false)]
     special_full: bool,
 
-    /// Characters that must always be present
-    #[arg(short = 'm', long = "must", value_parser = parse_nonempty_str)]
-    must: Option<String>,
-
-    /// Characters to include in the alphabet
+    /// Include characters in the alphabet
     #[arg(short = 'i', long = "include", value_parser = parse_nonempty_str)]
     include: Option<String>,
 
-    /// Characters to exclude from the alphabet
+    /// Exclude characters from the alphabet
     #[arg(short = 'x', long = "exclude", value_parser = parse_nonempty_str)]
     exclude: Option<String>,
 
-    /// Alphabet used to generate the password
+    /// Override the alphabet used to generate the password
     #[arg(short = 'a', long = "alphabet", value_parser = parse_nonempty_str)]
     alphabet: Option<String>,
 
-    /// Custom alphabet to use for special characters. --special-full overrides
-    /// this option.
+    /// Specify the alphabet for special characters (--special-full overrides
+    /// this option)
     #[arg(long = "special-set", value_parser = parse_nonempty_str)]
     special_set: Option<String>,
 }
