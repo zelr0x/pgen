@@ -92,8 +92,7 @@ fn parse_nonempty_str(s: &str) -> Result<String, String> {
 fn main() {
     let args = Args::parse();
     let n = args.length;
-    // Cheap defensive check that parsers were applied as expected.
-    assert!((MIN..=MAX).contains(&n));
+    debug_assert!((MIN..=MAX).contains(&n));
 
     // Empty means not specified, ensured by parse_nonempty_str.
     let mut a = args
@@ -147,7 +146,10 @@ fn main() {
             exit(2);
         })
     }
-    let p = g.generate(n);
+    let p = g.generate_checked(n).unwrap_or_else(|_| {
+        eprintln!("Rules cannot be satisfied for a password of specified length");
+        exit(3);
+    });
     std::io::stdout().write_all(p.expose_secret()).unwrap();
 }
 
@@ -171,5 +173,33 @@ mod tests {
     fn arg_parse_rejects_large_n() {
         let r = Args::try_parse_from(["pgen", &format!("{}", MAX_RAW + 1)]);
         assert!(r.is_err());
+    }
+
+    #[test]
+    fn works() {
+        let args = [
+            "pgen",
+            "-i",
+            "c",
+            "-a",
+            "Aab1.",
+            "--special-set",
+            "#$%",
+            "-scd",
+            "8",
+            "-x",
+            "a",
+        ];
+        let r = Args::try_parse_from(args);
+        assert!(r.is_ok());
+
+        let args = r.unwrap();
+        assert_eq!(args.alphabet, Some("Aab1.".to_owned()));
+        assert_eq!(args.special_set, Some("#$%".to_owned()));
+        assert_eq!(args.include, Some("c".to_owned()));
+        assert_eq!(args.exclude, Some("a".to_owned()));
+        assert!(args.case_mix);
+        assert!(args.digit);
+        assert!(args.special);
     }
 }

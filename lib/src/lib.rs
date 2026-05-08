@@ -208,6 +208,13 @@ impl<R: CryptoRng> PassGen<R> {
             .map(|alphabet| Self::new_with_rng(rng, alphabet, special_set))
     }
 
+    /// Generate the password satisfying all rules if possible.
+    ///
+    /// If specified length `n` is smaller than the number of rules specified,
+    /// no rule is enforced.
+    ///
+    /// See [`Self::generated_checked`]` for a version that fails
+    /// if it's not possible to enforce the rules with specified length.
     pub fn generate(&mut self, n: usize) -> SecretSlice<u8> {
         let a = &self.alphabet;
         let rules = &self.rules;
@@ -215,12 +222,14 @@ impl<R: CryptoRng> PassGen<R> {
 
         let mut s = vec![0u8; n];
         let mut nextp = 0;
-        for rule in rules {
-            match &rule {
-                Rule::MustInclude(ma) => {
-                    let mai = rng.random_range(0..ma.len());
-                    s[nextp] = ma[mai];
-                    nextp += 1;
+        if n >= rules.len() {
+            for rule in rules {
+                match &rule {
+                    Rule::MustInclude(ma) => {
+                        let mai = rng.random_range(0..ma.len());
+                        s[nextp] = ma[mai];
+                        nextp += 1;
+                    }
                 }
             }
         }
@@ -229,6 +238,13 @@ impl<R: CryptoRng> PassGen<R> {
         }
         s.shuffle(rng);
         SecretSlice::new(s.into())
+    }
+
+    pub fn generate_checked(&mut self, n: usize) -> Result<SecretSlice<u8>, Error> {
+        if n < self.rules.len() {
+            return Err(Error::UnsatisfiableRule);
+        }
+        Ok(self.generate(n))
     }
 
     /// Ensures at least one special character is present in the generated
