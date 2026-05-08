@@ -3,7 +3,7 @@
 
 Simple secure random password generator
 
-It uses a cryptographically-secure RNG (CRNG) and tries its best to avoid leaving passwords in memory longer than needed.
+It uses a cryptographically-secure RNG and tries its best to avoid leaving passwords in memory longer than needed.
 
 Generated passwords are not human-readable.
 
@@ -14,7 +14,7 @@ Generated passwords are not human-readable.
 
 
 ## CLI
-Provided CLI tool generates passwords that suit most password requirements and provide high security given reasonable length. The generator uses default alphabet and RNG.
+Provided CLI tool generates passwords that suit most password requirements and provide high security given reasonable length. The generator uses default RNG.
 
 ```sh
 pgen 32
@@ -23,6 +23,19 @@ will output something like
 ```sh
 oYLlkEX7-PM8yVr2C8FejKnjnqNKmGzw
 ```
+
+It is possible to modify the alphabet or require certain rules to be satisfied. For example, if you need a password that includes at least one lowercase (`-l`), one uppercase (`-u`), one special character (`-s`), and one digit (`-d`) you can use:
+```sh
+pgen 16 -lusd
+```
+
+`-c` is a shorthand for `-lu`, so alternative to the above is:
+```sh
+pgen 16 -csd
+```
+The order of those flags doesn't matter.
+
+See help (`-h`|`--help`) for a full list of options.
 
 
 ## Library
@@ -38,3 +51,15 @@ If you need to generate many passwords repeatedly or if you want to use a differ
 let p = PassGen::with_alphabet("abc")?;
 p.generate(5); // cabac
 ```
+
+### Rules
+It is possible to require the following rules to be satisfied by all generated passwords with the following methods:
+- `with_special` - at least one character from a special set
+- `with_lower` - at least one lowercase character (Latin1)
+- `with_upper` - at least one uppercase character (Latin1)
+- `with_digit` - at least one digit
+
+Default special set includes only underscore and hyphen, other options are:
+- `SpecialSet::Full` for the full set of ASCII special characters
+- `SpecialSet::Safe` for the "safe" set, which includes all special characters except space, backtick, backslash, single and double quotes, pipe, and angle brackets
+- `SpecialSet::Custom` for a custom set
