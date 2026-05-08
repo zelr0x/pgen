@@ -15,7 +15,7 @@ const MAX: usize = MAX_RAW as usize;
 /// Default alphabet consists of numbers, latin letters, hyphens
 /// and underscores.
 ///
-/// Uses ChaCha12 CRNG for secure generation and tries its best
+/// Uses ChaCha20 CRNG for secure generation and tries its best
 /// to avoid leaving passwords in memory.
 #[derive(Parser, Debug, ZeroizeOnDrop)]
 #[command(name = "pgen", author, version, about, long_about)]

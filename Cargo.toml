@@ -5,7 +5,7 @@ resolver = "3"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-rand = { version = "0.10.1", features = ["thread_rng"] }
+rand = { version = "0.10.1", features = ["chacha"] }
 secrecy = { version = "0.10.3" }
 
 [profile.release]

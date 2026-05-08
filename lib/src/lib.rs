@@ -4,7 +4,11 @@ mod byteset;
 
 use std::ops::Index;
 
-use rand::{self, CryptoRng, RngExt, rngs::ThreadRng, seq::SliceRandom};
+use rand::{
+    self, CryptoRng, RngExt, SeedableRng,
+    rngs::{ChaCha20Rng, SysRng},
+    seq::SliceRandom,
+};
 use secrecy::SecretSlice;
 
 pub use secrecy::ExposeSecret;
@@ -182,12 +186,6 @@ pub struct PassGen<R: CryptoRng> {
     rules: Vec<Rule>,
 }
 
-impl Default for PassGen<rand::rngs::ThreadRng> {
-    fn default() -> Self {
-        Self::new(Alphabet::default(), SpecialSet::Default)
-    }
-}
-
 impl<R: CryptoRng> PassGen<R> {
     pub fn new_with_rng<A>(rng: R, alphabet: A, special_set: SpecialSet) -> Self
     where
@@ -293,19 +291,25 @@ impl<R: CryptoRng> PassGen<R> {
     }
 }
 
-impl PassGen<ThreadRng> {
+impl Default for PassGen<ChaCha20Rng> {
+    fn default() -> Self {
+        Self::new(Alphabet::default(), SpecialSet::Default)
+    }
+}
+
+impl PassGen<ChaCha20Rng> {
     pub fn new<A>(alphabet: A, special_set: SpecialSet) -> Self
     where
         A: Into<Alphabet>,
     {
-        Self::new_with_rng(rand::rng(), alphabet.into(), special_set)
+        Self::new_with_rng(PassGen::default_rng(), alphabet.into(), special_set)
     }
 
     pub fn with_alphabet<A>(alphabet: A) -> Result<Self, A::Error>
     where
         A: TryInto<Alphabet>,
     {
-        Self::try_new(rand::rng(), alphabet, SpecialSet::Default)
+        Self::try_new(PassGen::default_rng(), alphabet, SpecialSet::Default)
     }
 
     pub fn with_rng<R>(rng: R) -> PassGen<R>
@@ -313,6 +317,11 @@ impl PassGen<ThreadRng> {
         R: CryptoRng,
     {
         PassGen::new_with_rng(rng, Alphabet::default(), SpecialSet::Default)
+    }
+
+    fn default_rng() -> ChaCha20Rng {
+        // Infallible when seeded from SysRng.
+        ChaCha20Rng::try_from_rng(&mut SysRng).unwrap()
     }
 }
 

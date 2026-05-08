@@ -10,7 +10,7 @@ Generated passwords are not human-readable.
 
 ## Defaults
 - Default alphabet consists of printable Latin1 characters except the special characters: only punctuation characters in the alphabet are the underscore and the minus
-- Default RNG is ChaCha12
+- Default RNG is ChaCha20
 
 
 ## CLI
