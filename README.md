@@ -5,11 +5,11 @@ Simple secure random password generator
 
 It uses a cryptographically-secure RNG and tries its best to avoid leaving passwords in memory longer than needed.
 
-Generated passwords are not human-readable.
+Generated passwords are random printable ASCII sequences and are not human-readable.
 
 
 ## Defaults
-- Default alphabet consists of printable Latin1 characters except the special characters: only punctuation characters in the alphabet are the underscore and the minus
+- Default alphabet consists of printable characters except the special characters: only punctuation characters in the alphabet are the underscore and the minus
 - Default RNG is ChaCha20
 
 
@@ -55,8 +55,8 @@ p.generate(5); // cabac
 ### Rules
 It is possible to require the following rules to be satisfied by all generated passwords with the following methods:
 - `with_special` - at least one character from a special set
-- `with_lower` - at least one lowercase character (Latin1)
-- `with_upper` - at least one uppercase character (Latin1)
+- `with_lower` - at least one lowercase character
+- `with_upper` - at least one uppercase character
 - `with_digit` - at least one digit
 
 Default special set includes only underscore and hyphen, other options are:
