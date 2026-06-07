@@ -10,43 +10,34 @@ const MIN: usize = MIN_RAW as usize;
 const MAX: usize = MAX_RAW as usize;
 
 /// Simple ASCII password generator.
-///
-/// Results depend on the alphabet and options.
-/// Default alphabet consists of numbers, latin letters, hyphens
-/// and underscores.
-///
-/// Uses ChaCha20 CRNG for secure generation and tries its best
-/// to avoid leaving passwords in memory.
 #[derive(Parser, Debug, ZeroizeOnDrop)]
-#[command(name = "pgen", author, version, about, long_about)]
+#[command(name = "pgen", version, about, long_about = None)]
 struct Args {
-    /// The length of the password
+    /// Required password length, in characters
     #[arg(default_value_t = 16, value_parser=parse_number)]
     length: usize,
 
-    /// Require the password to have at least one lowercase letter
+    /// Require at least one lowercase letter
     #[arg(short = 'l', long = "lower", default_value_t = false)]
     lower: bool,
 
-    /// Require the password to have at least one uppercase letter
+    /// Require at least one uppercase letter
     #[arg(short = 'u', long = "upper", default_value_t = false)]
     upper: bool,
 
-    /// Require the password to have at least one lowercase and
-    /// one uppercase letter (same as -lu)
+    /// Require at least one lowercase and one uppercase letter (same as -lu)
     #[arg(short = 'c', long = "case-mix", default_value_t = false)]
     case_mix: bool,
 
-    /// Require the password to have at least one digit
+    /// Require at least one digit
     #[arg(short = 'd', long = "digit", default_value_t = false)]
     digit: bool,
 
-    /// Require the password to have at least one special character
+    /// Require at least one special character
     #[arg(short = 's', long = "special", default_value_t = false)]
     special: bool,
 
-    /// Require the password to have at least one special character
-    /// from the full ASCII special character set
+    /// Require at least one special character from the full ASCII special character set
     #[arg(long = "special-full", default_value_t = false)]
     special_full: bool,
 
@@ -58,12 +49,11 @@ struct Args {
     #[arg(short = 'x', long = "exclude", value_parser = parse_nonempty_str)]
     exclude: Option<String>,
 
-    /// Override the alphabet used to generate the password
+    /// Override the alphabet
     #[arg(short = 'a', long = "alphabet", value_parser = parse_nonempty_str)]
     alphabet: Option<String>,
 
-    /// Specify the alphabet for special characters (--special-full overrides
-    /// this option)
+    /// Specify the alphabet for special characters (ignored if --special-full is specified)
     #[arg(long = "special-set", value_parser = parse_nonempty_str)]
     special_set: Option<String>,
 }
