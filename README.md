@@ -39,6 +39,17 @@ See help (`-h`|`--help`) for a full list of options.
 
 
 ## Library
+
+Cargo.toml:
+```toml
+pgen = { git = "https://github.com/zelr0x/pgen", tag = "0.3.0" }
+```
+
+Use:
+```rust
+use pgen::{self, ExposeSecret};
+```
+
 The provided library allows to specify a different alphabet or a different generator.
 
 If you generate passwords rarely and are ok with default RNG and alphabet you can do this:
